@@ -70,8 +70,8 @@ def ratesFromUser(rates):
         rating.append(int(items[2]))
 
     ratings_dict = {
-        "userId": userID,
         "movieId": itemID,
+        "userId": userID,
         "rating": rating,
     }
 

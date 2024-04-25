@@ -10,6 +10,20 @@ from surprise import KNNWithMeans
 from surprise import Dataset
 from sklearn.metrics.pairwise import cosine_similarity
 
+import nltk
+import string 
+from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
+from nltk.corpus import wordnet
+from nltk.stem.wordnet import WordNetLemmatizer
+
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+
+stopword = stopwords.words('English')
+
 bp = Blueprint('main', __name__, url_prefix='/')
 
 movies, genres, rates = loadData()
@@ -121,9 +135,9 @@ def getRecommendationBy(user_rates):   # 用户打分
         # Initialize a reader with rating scale from 1 to 5
         reader = Reader(rating_scale=(1, 5))
 
-        algo = KNNBasic(sim_options={'name': 'pearson', 'user_based': True}) #TODO: 算法部分
-        # algo2 = KNNWithMeans(sim_options={'name': 'pearson', 'user_based': True})  # user-based
-
+        # algo = KNNBasic(sim_options={'name': 'pearson', 'user_based': True}) #TODO: 算法部分
+        algo1 = KNNWithMeans(sim_options={'name': 'pearson', 'user_based': True})  # user-based
+        algo2 = KNNWithMeans(sim_options={'name': 'cosine', 'user_based': False})  # item-based
 
         # Convert user_rates to rates from the user
         user_rates = ratesFromUser(user_rates)
@@ -138,41 +152,37 @@ def getRecommendationBy(user_rates):   # 用户打分
         trainset = training_data.build_full_trainset()
 
         # Fit the algorithm using the trainset
-        algo.fit(trainset)
-
+        algo1.fit(trainset)
+        algo2.fit(trainset)
 
         ## Convert the raw user id to the inner user id using algo.trainset
-        inner_id = trainset.to_inner_uid(611)
+        inner_id1 = trainset.to_inner_uid(5010) # user 序号
+        inner_id2 = trainset.to_inner_iid(5010) # item 序号
 
         ## Get the nearest neighbors of the inner_id
-        neighbors = algo.get_neighbors(inner_id, k=1)   #TODO: K近邻数量
-        # neighbors1 = algo1.get_neighbors(inner_id, k=20)
-        # neighbors2 = algo2.get_neighbors(inner_id, k=20)
+        user_neighbors = algo1.get_neighbors(inner_id1, k=3)   #TODO: K近邻数量
+        item_neighbors = algo2.get_neighbors(inner_id2, k=3)
 
         ## Convert the inner user ids of the neighbors back to raw user ids
-        neighbors_uid = [algo.trainset.to_raw_uid(x) for x in neighbors]
-        # neighbors_uid1 = [algo1.trainset.to_raw_uid(x) for x in neighbors1]
-        # neighbors_uid2 = [algo2.trainset.to_raw_uid(x) for x in neighbors2]
-        # neighbors_uid = [element for element in neighbors_uid1 if element in neighbors_uid2]
+        neighbors_uid = [algo1.trainset.to_raw_uid(x) for x in user_neighbors]
+        neighbors_iid = [algo2.trainset.to_raw_uid(x) for x in item_neighbors]
 
         ## Filter out the movies this neighbor likes.
+        results_movies1 = rates[rates['userId'].isin(neighbors_uid)]  # 获取到近邻的结果
+        results_movies2 = rates[rates['movieId'].isin(neighbors_iid)]
 
-        results_movies = rates[rates['userId'].isin(neighbors_uid)]  # 获取到近邻的结果
-        moviesIds = results_movies[results_movies['rating'] > 2.5]['movieId']
-
-        # results_movies1 = rates[rates['userId'].isin(neighbors_uid1)]
-        # results_movies1 = results_movies1[results_movies1['rating'] > 2.5]  # 先进行了一轮筛选
-
-        # results_movies2 = rates[rates['userId'].isin(neighbors_uid2)]
-        # results_movies2 = results_movies2[results_movies2['rating'] > 2.5]
+        moviesIds1 = results_movies1[results_movies1['rating'] > 3.5]['movieId']
+        moviesIds2 = results_movies2[results_movies2['rating'] > 3.5]['movieId']
 
         # Convert the movie ids to details.
-        results = movies[movies['movieId'].isin(moviesIds)][:12]
+        results = movies[movies['movieId'].isin(moviesIds1)][:12]
+        # results = movies[movies['movieId'].isin(moviesIds2)][:12]
+        
 
     # Return the result
     if len(results) > 0:
-        return results.to_dict('records'), "These blogs are recommended based on your ratings."
-    return results, "No recommendations."
+        return results.to_dict('records'), "These blogs are similar to your liked."
+    return results, "No similar blog found."
     # ==== End ====
 
 
@@ -206,19 +216,19 @@ def getLikedSimilarBy(user_likes):
     # ==== End ====
 
 ##==============================content-based recommand=========================
-import nltk
-import string 
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.corpus import wordnet
-from nltk.stem.wordnet import WordNetLemmatizer
+# import nltk
+# import string 
+# from nltk.tokenize import word_tokenize
+# from nltk.corpus import stopwords
+# from nltk.corpus import wordnet
+# from nltk.stem.wordnet import WordNetLemmatizer
 
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
+# nltk.download('stopwords')
+# nltk.download('punkt')
+# nltk.download('averaged_perceptron_tagger')
+# nltk.download('wordnet')
 
-stopword = stopwords.words('English')
+# stopword = stopwords.words('English')
 
 
 def get_wordnet_pos(tag):
@@ -234,35 +244,54 @@ def get_wordnet_pos(tag):
         return ''
     
 
-def prepocessing(text):
-    # lower case
-    text = text.lower()
+# def prepocessing(text):
+#     # lower case
+#     text = str(text).lower()
     
-    # remove punctuation
-    text_rp = "".join([char for char in text if char not in string.punctuation])
+#     # remove punctuation
+#     text_rp = "".join([char for char in text if char not in string.punctuation])
     
-    # word tokenization 
-    tokens = word_tokenize(text_rp)
+#     # word tokenization 
+#     tokens = word_tokenize(text_rp)
     
-    # remove stopwords  
+#     # remove stopwords  
     
-    tokens_without_stopwords = [word for word in tokens if word not in stopword]
+#     tokens_without_stopwords = [word for word in tokens if word not in stopword]
 
-    # lemm
-    tagged_tokens = nltk.pos_tag(tokens_without_stopwords)
-    #print(tagged_tokens)
-    tokens_processed = []
+#     # lemm
+#     tagged_tokens = nltk.pos_tag(tokens_without_stopwords)
+#     #print(tagged_tokens)
+#     tokens_processed = []
     
-    lemmatizer = WordNetLemmatizer()
-    for word, tag in tagged_tokens:
-        word_net_tag = get_wordnet_pos(tag)
-        if word_net_tag != '':
-            tokens_processed.append(lemmatizer.lemmatize(word, word_net_tag))
-        else:
-            tokens_processed.append(word)
-    text_processed = ' '.join(tokens_processed)
+#     lemmatizer = WordNetLemmatizer()
+#     for word, tag in tagged_tokens:
+#         word_net_tag = get_wordnet_pos(tag)
+#         if word_net_tag != '':
+#             tokens_processed.append(lemmatizer.lemmatize(word, word_net_tag))
+#         else:
+#             tokens_processed.append(word)
+#     text_processed = ' '.join(tokens_processed)
     
-    return text_processed
+#     return text_processed
+
+from nltk.stem import PorterStemmer
+import re
+
+def preprocessing(text, flg_stemm=False, flg_lemm=True, lst_stopwords=stopword):
+    text=str(text).lower()
+    text=text.strip()
+    text = re.sub(r'[^\w\s]', '', text)
+    lst_text = text.split()
+    if lst_stopwords is not None:
+        lst_text=[word for word in lst_text if word not in lst_stopwords]
+    if flg_lemm:
+        lemmatizer = WordNetLemmatizer()
+        lst_text = [lemmatizer.lemmatize(word) for word in lst_text]
+    if flg_stemm:
+        stemmer = PorterStemmer()
+        lst_text = [stemmer.stem(word) for word in lst_text]
+    text=" ".join(lst_text)
+    return text
 
 
 def build_tfidf_vectors():
@@ -273,7 +302,7 @@ def build_tfidf_vectors():
 
     #Define a TF-IDF Vectorizer Object. 
     tfidf = TfidfVectorizer(
-        preprocessor=prepocessing, 
+        preprocessor=preprocessing, 
         ngram_range=(1,1),
         max_features=30)
 

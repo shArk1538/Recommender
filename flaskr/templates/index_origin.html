@@ -1,16 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Discover Blogs You Love</title>  
+    <title>Movie Recommender System</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link href="https://fonts.googleapis.com/css?family=Bangers|Montserrat:700|Open+Sans:300&display=swap" rel="stylesheet"> 
-    <script src="https://kit.fontawesome.com/aa8b7e6cf6.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -32,12 +29,10 @@
         <div class="container">
             <nav :class="['navbar', 'is-active']" role="navigation" aria-label="main navigation">
                 <div class="navbar-brand">
-                    <a class="navbar-item" href="/"> 
-                        <span  style="text-align: center;font-weight: bold;font-size: 3rem">
-                            Discover Blogs You Love
-                        </span>
+                    <a class="navbar-item" href="/">
+                        <span class="is-size-3">Blogs Recommender System</span>
                     </a>
-                    
+
                     <a role="button" :class="['navbar-burger', isActivityNavBar ? 'is-active' : '']" aria-label="menu"
                        aria-expanded="false"
                        data-target="navbarBasicExample" @click="isActivityNavBar = !isActivityNavBar">
@@ -53,13 +48,13 @@
                     <div class="navbar-end">
                         <div class="navbar-item">
                             <div class="buttons">
-                                <button class="button is-info is-outlined" @click="showGenres = true">
-                                    <strong>Other Topics</strong>
+                                <button class="button is-danger" @click="cleanAll">
+                                    <strong>Clean All</strong>
                                 </button>
 
-                                <button class="button is-danger is-outlined" @click="cleanAll">
-                                    <strong>Quit</strong>
-                                </button>          
+                                <button class="button is-link" @click="showGenres = true">
+                                    <strong>Topics</strong>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -71,63 +66,35 @@
             {% if recommendations %}
             <section class="section pt-2 pb-0">
                 <div class="container">
-                    <div class="tabs is-large">
-                        <ul>
-                          <li class="is-active">
-                            <a>
-                              <span class="icon is-large">
-                                <i class="fa fa-rss" aria-hidden="true"></i>
-                                </span>
-                              <span>Recommended Blogs</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a>
-                              <span class="icon is-large">
-                                <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>
-                                </span>
-                              <span>More Blogs Similar Liked</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a>
-                              <span class="icon is-large">
-                                <i class="fa fa-thumbs-up" aria-hidden="true"></i>
-                                </span>
-                              <span>You Liked Blogs</span>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>
-                      <p class="subtitle is-size-5">{{ recommendations_message }}</p>
-
+                    <p class="is-size-4">
+                        Recommended
+                    </p>
+                    <p class="mb-3">{{ recommendations_message }}</p>
 
                     <div class="columns is-mobile is-multiline">
                         {% for movie in recommendations %}
-                        <div class="column is-4-fullhd is-4-desktop is-4-tablet is-6-mobile">
+                        <div class="column is-2-fullhd is-2-desktop is-2-tablet is-6-mobile">
                             <div class="card">
                                 <div class="card-image">
-                                    <figure class="image is-4by3">
+                                    <figure class="image is-3by4">
                                         <img src="{{ movie['cover_url'] }}"
                                              onerror="this.src='https://placehold.co/480x640?text=No+Cover';"
                                              alt="">
                                     </figure>
                                 </div>
-
-
                                 <div class="card-content p-2">
                                     <div class="media">
                                         <div class="media-content">
-                                            <p style="font-size: 1rem; font-weight: bold">{{ movie['title']
+                                            <p style="font-size: 0.8rem; font-weight: bold">{{ movie['title']
                                                 }}</p>
-                                            <blockquote style="font-size: 0.8rem">{{ movie['content'] }}</blockquote>
+                                            <p style="font-size: 0.8rem">{{ movie['content'] }}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="card-footer p-2">
-                                    <button class="button is-small is-outlined" @click="updateLike({{movie['movieId']}})">
-                                        <span :class="['fa fa-heart-o', inLikes({{movie['movieId']}}) ? 'checked': '']" > Like</span>
+                                    <button class="button is-small" @click="updateLike({{movie['movieId']}})">
+                                        <span :class="['fa fa-heart', inLikes({{movie['movieId']}}) ? 'checked': '']" > Like</span>
                                     </button>
                                 </div>
                             </div>
@@ -141,61 +108,30 @@
             {% if likes_similars %}
             <section class="section pb-0">
                 <div class="container">
-                    <div class="tabs is-large">
-                        <ul>
-                          <li>
-                                <a>
-                                  <span class="icon is-large">
-                                    <i class="fa fa-rss" aria-hidden="true"></i>
-                                    </span>
-                                  <span>Recommended Blogs</span>
-                                </a>
-                          </li>
-                          <li class="is-active">
-                            <a>
-                              <span class="icon is-large">
-                                <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>
-                                </span>
-                              <span>More Blogs Similar Liked</span>
-                            </a>
-                          </li>
-                          <li>
-                            <a>
-                              <span class="icon is-large">
-                                <i class="fa fa-thumbs-up" aria-hidden="true"></i>
-                                </span>
-                              <span>You Liked Blogs</span>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>                    
-                      <p class="subtitle is-size-5">{{ likes_similar_message }}</p>
-                    
+                    <p class="is-size-4">
+                        Liked with Similar Items
+                    </p>
+                    <p class="mb-3">{{ likes_similar_message }}</p>
+
                     <div class="columns is-mobile is-multiline">
                         {% for movie in likes_similars %}
-                        <div class="column is-4-fullhd is-4-desktop is-4-tablet is-6-mobile">
+                        <div class="column is-2-fullhd is-2-desktop is-2-tablet is-6-mobile">
                             <div class="card">
                                 <div class="card-image">
-                                    <figure class="image is-4by3">
-                                        <img src="{{ movie['cover_url'] }}"
-                                             onerror="this.src='https://placehold.co/480x640?text=No+Cover';"
-                                             alt="">
-                                    </figure>
                                 </div>
-
                                 <div class="card-content p-2">
                                     <div class="media">
                                         <div class="media-content">
-                                            <p style="font-size: 1rem; font-weight: bold">{{ movie['title']
+                                            <p style="font-size: 0.8rem; font-weight: bold">{{ movie['title']
                                                 }}</p>
-                                            <blockquote style="font-size: 0.8rem">{{ movie['content'] }}</blockquote>
+                                            <p style="font-size: 0.8rem">{{ movie['content'] }}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="card-footer p-2">
-                                    <button class="button is-small is-outlined" @click="updateLike({{movie['movieId']}})">
-                                        <span :class="['fa fa-heart-o', inLikes({{movie['movieId']}}) ? 'checked': '']" > Like</span>
+                                    <button class="button is-small" @click="updateLike({{movie['movieId']}})">
+                                        <span :class="['fa fa-heart', inLikes({{movie['movieId']}}) ? 'checked': '']" > Like</span>
                                     </button>
                                 </div>
                             </div>
@@ -209,46 +145,16 @@
             {% if likes %}
             <section class="section pb-0">
                 <div class="container">
-                    <div class="tabs is-large">
-                        <ul>
-                          <li>
-                                <a>
-                                  <span class="icon is-large">
-                                    <i class="fa fa-rss" aria-hidden="true"></i>
-                                    </span>
-                                  <span>Recommended Blogs</span>
-                                </a>
-                          </li>
-                          <li>
-                                <a>
-                                  <span class="icon is-large">
-                                    <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>
-                                    </span>
-                                  <span>More Blogs Similar Liked</span>
-                                </a>
-                          </li>
-                          <li class="is-active">
-                            <a>
-                              <span class="icon is-large">
-                                <i class="fa fa-thumbs-up" aria-hidden="true"></i>
-                                </span>
-                              <span>You Liked Blogs</span>
-                            </a>
-                          </li>
-                        </ul>
-                      </div>  
-                    <div class="buttons">
-                        <button class="button is-outlined" @click="reloadPage">
-                            <i class="fa fa-refresh mr-3" aria-hidden="true"></i>Refresh
-                        </button>
-                    </div>
+                    <p class="is-size-4 mb-3">
+                        Liked <button class="button" @click="reloadPage"><i class="fa fa-refresh mr-3" aria-hidden="true"></i>Refresh</button>
+                    </p>
 
                     <div class="columns is-mobile pb-3" style="overflow: scroll">
                         {% for movie in likes %}
-                        <div class="column is-4-fullhd is-4-desktop is-4-tablet is-6-mobile">
+                        <div class="column is-2-fullhd is-2-desktop is-2-tablet is-6-mobile">
                             <div class="card">
                                 <div class="card-image">
-                                    <figure class="image is-4by3">
+                                    <figure class="image is-3by4">
                                         <img src="{{ movie['cover_url'] }}"
                                              onerror="this.src='https://placehold.co/480x640?text=No+Cover';"
                                              alt="">
@@ -257,15 +163,15 @@
                                 <div class="card-content p-2">
                                     <div class="media">
                                         <div class="media-content">
-                                            <p style="font-size: 1rem; font-weight: bold">{{ movie['title']
+                                            <p style="font-size: 0.8rem; font-weight: bold">{{ movie['title']
                                                 }}</p>
-                                            <blockquote style="font-size: 0.8rem">{{ movie['content'] }}</blockquote>
+                                            <p style="font-size: 0.8rem">{{ movie['content'] }}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="card-footer p-2">
-                                    <button class="button is-small is-outlined" @click="updateLike({{movie['movieId']}})">
+                                    <button class="button is-small" @click="updateLike({{movie['movieId']}})">
                                         <span :class="['fa fa-heart', inLikes({{movie['movieId']}}) ? 'checked': '']" > Like</span>
                                     </button>
                                 </div>
@@ -282,53 +188,37 @@
             <div class="modal-background"></div>
             <div class="modal-card">
                 <header class="modal-card-head">
-                    <span class="icon is-large">
-                        <i class="fa fa-book" aria-hidden="true"></i>
-                        </span>
-                    <p class="subtitle is-size-4"><strong>Choose Blogs Topics</strong></p>
+                    <p class="modal-card-title">Please choose any topics you're interested in.</p>
                 </header>
                 <div class="modal-card-body">
-                    <div class="notification is-success is-light">
-                            <p class="subtitle is-size-6">
-                                Hints: Choose any blog topic you want to read, you can choose more than one.</p>
-                    </div>
+                    <p class="mb-3">Multiple answers are possible.</p>
                     {% for gener in genres %}
-                    <button :class="['button m-3 is-medium is-outlined', inGenres({{gener['id']}}) ? 'is-link is-light' : '' ]" value="{{gener['id']}}"
+                    <button :class="['button m-2', inGenres({{gener['id']}}) ? 'is-link' : '' ]" value="{{gener['id']}}"
                             @click="updateGenre({{gener['id']}})">
-                        <p class="subtitle is-size-5">{{gener['name']}}</p>
+                        {{gener['name']}}
                     </button>
                     {% endfor %}
                 </div>
                 <footer class="modal-card-foot">
-                    <button class="button is-medium is-outlined is-link" :disabled="genres.length == 0" @click="saveGenres">Save
+                    <button class="button is-link" :disabled="genres.length == 0" @click="saveGenres">Save
                     </button>
                 </footer>
             </div>
-            <button class="modal-close is-large" aria-label="close"></button>
         </div>
 
         <div :class="['modal', showMovieRate ? 'is-active' : '']">
             <div class="modal-background"></div>
-            <div class="modal-card" style="max-width: 1200px">
+            <div class="modal-card" style="max-width: 1000px">
                 <header class="modal-card-head">
-                    <span class="icon is-large">
-                        <i class="fa fa-star-o" aria-hidden="true"></i>
-                        </span>
-                    <p class="subtitle is-size-4"><strong>Blogs Rating</strong></p>
+                    <p class="modal-card-title">Please rate the following movies.</p>
                 </header>
                 <div class="modal-card-body">
-                    <div class="notification is-success is-light">
-                        <p class="subtitle is-size-6">
-                            Hints: There might be some blogs you haven't read, if so please give a rating based on the images and preview content.
-                            You don't need to rate every blog.
-                        </p>
-                     </div>
                     <div class="columns is-mobile is-multiline">
                         {% for movie in default_genres_movies %}
-                        <div class="column is-4-fullhd is-4-desktop is-4-tablet is-4-mobile">
+                        <div class="column is-3-fullhd is-3-desktop is-3-tablet is-6-mobile">
                             <div class="card">
                                 <div class="card-image">
-                                    <figure class="image is-4by3">
+                                    <figure class="image is-3by4">
                                         <img src="{{ movie['cover_url'] }}"
                                              onerror="this.src='https://placehold.co/480x640?text=No+Cover';" alt="">
                                     </figure>
@@ -336,9 +226,9 @@
                                 <div class="card-content p-2">
                                     <div class="media">
                                         <div class="media-content">
-                                            <p style="font-size: 1rem; font-weight: bold">{{ movie['title']
+                                            <p style="font-size: 0.8rem; font-weight: bold">{{ movie['title']
                                                 }}</p>
-                                            <blockquote style="font-size: 0.8rem">{{ movie['content'] }}</blockquote>
+                                            <p style="font-size: 0.8rem">{{ movie['content'] }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -355,7 +245,7 @@
                     </div>
                 </div>
                 <footer class="modal-card-foot">
-                    <button class="button is-medium is-outlined is-link" :disabled="userRates.length == 0"
+                    <button class="button is-link" :disabled="userRates.length == 0"
                             @click="showMovieRate = false; reloadPage()">Save
                     </button>
                 </footer>
@@ -366,9 +256,8 @@
             <div class="container is-max-widescreen">
                 <div class="content has-text-centered">
                     <p>
-                        <strong>Discover Blogs You Love</strong> 
-                        The website content is licensed.
-                      </p>
+                        Copyright © 2023 <a href="https://hci.comp.hkbu.edu.hk" target="_blank"><strong>PI Lab</strong></a>. All Rights Reserved.
+                    </p>
                     <a href="https://www.comp.hkbu.edu.hk" target="_blank"><img src="/static/img/comp-logo.png"
                                                                                 alt="logo"
                                                                                 style="height: 30px; margin-right: 20px"></a>
@@ -543,17 +432,6 @@
 
     .star {
         cursor: pointer;
-    }
-
-    .navbar-item a {
-    display: block;
-    width: 100%;
-    height: 100%;
-    color: white;
-    text-decoration: none;
-    }
-    .navbar-item a:hover {
-    background-color: orange;
     }
 </style>
 
