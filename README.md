@@ -1,4 +1,4 @@
-# Lab3
+# Recommender System for Blogs
 
 ## Create an environment (only for Mac and Linux)
 
